@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<style>
+		@font-face {
+			font-family: "Pokemon solid";
+			src: url("./Pokemon\ Solid.ttf");
+		}
+
+		html {
+			font-family: "Pokemon solid", serif;
+
+		}
+
+		body {
+			background-image: url("./pokemon-1607267541007-4662.jpg");
+			background-attachment: fixed;
+
+		}
+
+		.loader {
+			margin: auto;
+			display: block;
+		}
+
+		.poke {
+			text-decoration: none;
+			margin: 5vw;
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+		}
+
+		h1 {
+			font-family: "Pokemon solid", serif;
+			color: #ffcb05;
+			-webkit-text-stroke-width: 1.5px;
+			-webkit-text-stroke-color: #3565b0;
+			text-shadow: -7px 1px 1px #3565b0;
+
+		}
+
+		.card {
+			margin: 1vw;
+		}
+
+		@media screen and (max-width:768px) {
+			.poke {
+				grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+				font-size: 0.7rem;
+			}
+
+			.card-title {
+				font-size: 1.2rem;
+				;
+			}
+
+		}
+
+		@media screen and (min-height: 1071px) {
+			body {
+				background-size: cover;
+			}
+		}
+	</style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+		integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+	<title>Pokedex</title>
+</head>
+
+<body>
+
+	<div class="container text-center">
+		<div class="col">
+			<h1 class="mt-5 mb-5">Pokedex</h1>
+
+
+
+			<nav class="btns"></nav>
+			<main class="poke"></main>
+		</div>
+		<a class="btn btn-secondary mb-5" href="./index.html">HOME</a>
+	</div>
+
+
+
+
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+		integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+		crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+		integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+		crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"
+		integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s"
+		crossorigin="anonymous"></script>
+
+	<script>
+		const d = document;
+		let main = d.querySelector(".poke"),
+			btns = d.querySelector(".btns");
+
+		async function CallPoke(url) {
+			try {
+				main.innerHTML = `<img class="loader" alt="Cargando..." src="./loader.svg">`
+				let res = await fetch(url);
+				let json = await res.json();
+				let $template = "",
+					$prevLink,
+					$nextLink;
+
+				if (!res.ok) throw { status: res.status, statusText: res.statusText }
+				for (let i = 0; i < json.results.length; i++) {
+					try {
+						let res = await fetch(json.results[i].url),
+							pokemon = await res.json();
+
+						if (!res.ok) throw { status: res.status, statusText: res.statusText };
+						$template += `<div class="card text-white bg-danger border border-dark border-5 rounded shadow">
+						<div class="card-header">${pokemon.types[0].type.name.toUpperCase()}</div>
+		<img src="${pokemon.sprites.front_default}" class="card-img-top shadow-lg p-3 mb-5 bg-danger border border-dark bg-gradient rounded" alt="${pokemon.name}">
+		<div class="card-body">
+			<h5 class="card-title">${pokemon.name.toUpperCase()}</h5>
+			 <p class="card-text">Main ability: ${pokemon.abilities[0].ability.name}</p>
+		</div>
+	</div>`
+						main.innerHTML = $template;
+						$prevLink = json.previous ? `<a href="${json.previous}" class="btn btn-outline-success mr-4">Previous</a>` : "";
+						$nextLink = json.next ? `<a href="${json.next}" class="btn btn-outline-success" >Next</a>` : "";
+						btns.innerHTML = $prevLink + " " + $nextLink
+
+
+					}
+					catch {
+						console.log(err);
+						let message = err.statusText || "Ocurrio un error";
+						$template += `<figure><figcaption>Error ${err.status}: ${message}</figcaption></figure>`
+
+					}
+
+				}
+
+			}
+			catch (err) {
+				console.log(err);
+				let message = err.statusText || "Ocurrio un error";
+				main.innerHTML = `<p>Error ${err.status}: ${message}</p>`
+			}
+
+		}
+		d.addEventListener("DOMContentLoaded", e => CallPoke("https://pokeapi.co/api/v2/pokemon"))
+
+		d.addEventListener("click", e => {
+
+			if (e.target.matches(".btns a")) {
+				e.preventDefault()
+				CallPoke(e.target.getAttribute("href"))
+			}
+		})
+
+
+	</script>
+</body>
+
+</html>
